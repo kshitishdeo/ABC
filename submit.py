@@ -18,14 +18,14 @@ HONOR_PLEDGE = "Honor Pledge:\n\n  \"I have neither given nor received aid on th
 
 def require_pledges():
   print(LATE_POLICY)
-  ans = input("Please type 'yes' to agree and continue>")
+  ans = raw_input("Please type 'yes' to agree and continue>")
 
   if ans != "yes":
     raise RuntimeError("Late policy not accepted.")
 
   print
   print(HONOR_PLEDGE)
-  ans = input("Please type 'yes' to agree and continue>")
+  ans = raw_input("Please type 'yes' to agree and continue>")
   if ans != "yes":
     raise RuntimeError("Honor pledge not accepted")
   print

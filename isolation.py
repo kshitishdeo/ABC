@@ -122,6 +122,8 @@ class Board:
         b.__active_queen__ = self.__active_queen__
         b.__active_players_queen1__ = self.__active_players_queen1__
         b.__active_players_queen2__ = self.__active_players_queen2__
+        b.__inactive_players_queen1__ = self.__inactive_players_queen1__
+        b.__inactive_players_queen2__ = self.__inactive_players_queen2__
         b.__board_state__ = self.get_state()
         return b
     
@@ -164,24 +166,44 @@ class Board:
     def is_winner(self, player): 
         return not self.get_legal_moves() and player== self.__inactive_player__
 
-    def is_opponent_winner(self, player):
+    def is_opponent_winner(self, player): 
         return not self.get_legal_moves() and player== self.__active_player__
 
     def get_opponent_moves(self):                  
         return self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__inactive_players_queen1__)]) + self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__inactive_players_queen2__)])
+    
+    
 
     def get_legal_moves(self):
-        return {self.__active_players_queen1__:self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__active_players_queen1__)]) , self.__active_players_queen2__:self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__active_players_queen2__)])}
+        #We have changed this. Now we have to place 4 queens on board in first 4 moves.
         
+        move_by_q1 = self.__last_queen_move__[self.get_queen_name(self.__active_players_queen1__)]
+        move_by_q2 = self.__last_queen_move__[self.get_queen_name(self.__active_players_queen2__)]
+        
+        if  move_by_q1== Board.NOT_MOVED and move_by_q2== Board.NOT_MOVED :
+            return {self.__active_players_queen1__:self.__get_moves__(move_by_q1) , self.__active_players_queen2__:self.__get_moves__(move_by_q2)}
+        
+        elif  move_by_q1== Board.NOT_MOVED and move_by_q2!= Board.NOT_MOVED :
+            return {self.__active_players_queen1__:self.__get_moves__(move_by_q1) , self.__active_players_queen2__:[]}
+        
+        elif  move_by_q1!= Board.NOT_MOVED and move_by_q2== Board.NOT_MOVED :
+            return {self.__active_players_queen1__:[] , self.__active_players_queen2__:self.__get_moves__(move_by_q2)}
+        
+        else :
+            return {self.__active_players_queen1__:self.__get_moves__(move_by_q1) , self.__active_players_queen2__:self.__get_moves__(move_by_q2)}
             
+
     def get_legal_moves_of_queen1(self):
         return self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__active_players_queen1__)])
 
     def get_legal_moves_of_queen2(self):
         return self.__get_moves__(self.__last_queen_move__[self.get_queen_name(self.__active_players_queen2__)])
-
     
+
     def __get_moves__(self, move):
+        # Changed this function. Now the piece will move like QUEEN not like KING.
+        
+        
         if move == self.NOT_MOVED:
             return self.get_first_moves()
         if self.move_count < 2:
@@ -258,7 +280,9 @@ class Board:
         return out
 
 
-    def play_isolation(self, time_limit = 2000):
+    def play_isolation(self, time_limit = 5000):
+        #changed the time_limit
+        
         move_history = []
         queen_history =[]
         mi=1
@@ -269,16 +293,15 @@ class Board:
 
 
         while True:
-
-            game_copy = self.copy()
+            game_copy = self.copy()            
             move_start = curr_time_millis()
-
-            time_left = lambda : time_limit - (curr_time_millis() - move_start)
-            
+            time_left = lambda : time_limit - (curr_time_millis() - move_start)            
             curr_move = Board.NOT_MOVED
             try:
                 legal_player_moves=self.get_legal_moves()
                 curr_move,queen = self.__active_player__.move(game_copy,legal_player_moves , time_left) #queen added in return 
+                if queen == None:                
+                    return self.__inactive_player__, move_history,queen_history, "illegal move"                
                 self.set_active_queen(queen)
                 
             except AttributeError as e:
@@ -313,13 +336,12 @@ class Board:
                 return self.__inactive_player__, move_history,queen_history, "illegal move"
             
             self.__apply_move__(curr_move)
-            print(time_left())
 
 
 def game_as_text(winner, move_history, queen_history, termination="", board=Board(1,2)):
     print(winner)
     #ans = io.StringIO()
-    ans=StringIO.StringIO()
+    ans = StringIO.StringIO()
     k=0
    
     for i, move1 in enumerate(move_history):
